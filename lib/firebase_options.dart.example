@@ -47,29 +47,29 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions web = FirebaseOptions(
-    apiKey: 'AIzaSyAQhhiOVk6N2hs2Frv74FECCvM9yb_k7T8',
-    appId: '1:1010775404756:web:e2f8a9b9a8c6e81d384b41',
-    messagingSenderId: '1010775404756',
-    projectId: 'imako-aaaf9',
-    authDomain: 'imako-aaaf9.firebaseapp.com',
-    storageBucket: 'imako-aaaf9.firebasestorage.app',
-    measurementId: 'G-5S2CB2Q7ER',
+    apiKey: 'YOUR_WEB_API_KEY',
+    appId: 'YOUR_WEB_APP_ID',
+    messagingSenderId: 'YOUR_SENDER_ID',
+    projectId: 'YOUR_PROJECT_ID',
+    authDomain: 'YOUR_PROJECT_ID.firebaseapp.com',
+    storageBucket: 'YOUR_PROJECT_ID.appspot.com',
+    measurementId: 'YOUR_MEASUREMENT_ID',
   );
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyDCNTaVwyDeVCuhuThXYsdrEyOsBPjTQiw',
-    appId: '1:1010775404756:android:4c386cb27f38ba16384b41',
-    messagingSenderId: '1010775404756',
-    projectId: 'imako-aaaf9',
-    storageBucket: 'imako-aaaf9.firebasestorage.app',
+    apiKey: 'YOUR_ANDROID_API_KEY',
+    appId: 'YOUR_ANDROID_APP_ID',
+    messagingSenderId: 'YOUR_SENDER_ID',
+    projectId: 'YOUR_PROJECT_ID',
+    storageBucket: 'YOUR_PROJECT_ID.appspot.com',
   );
 
   static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'AIzaSyBOqxVXAMew4aeTPhx2j-msG9gJJBqXZqQ',
-    appId: '1:1010775404756:ios:3fcf625db1862c10384b41',
-    messagingSenderId: '1010775404756',
-    projectId: 'imako-aaaf9',
-    storageBucket: 'imako-aaaf9.firebasestorage.app',
-    iosBundleId: 'com.example.imakoApp',
+    apiKey: 'YOUR_IOS_API_KEY',
+    appId: 'YOUR_IOS_APP_ID',
+    messagingSenderId: 'YOUR_SENDER_ID',
+    projectId: 'YOUR_PROJECT_ID',
+    storageBucket: 'YOUR_PROJECT_ID.appspot.com',
+    iosBundleId: 'com.example.yourapp',
   );
-}
+} 

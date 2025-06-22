@@ -43,3 +43,47 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Firebase and API Keys
+android/app/google-services.json
+ios/Runner/GoogleService-Info.plist
+lib/firebase_options.dart
+lib/core/config/env_config.dart
+
+# Environment files
+.env
+.env.local
+.env.development
+.env.test
+.env.production
+*.env
+
+# Keystore files
+*.keystore
+*.jks
+key.properties
+
+# iOS certificates and provisioning profiles
+ios/Runner/*.p12
+ios/Runner/*.mobileprovision
+ios/Runner/*.cer
+
+# Android signing files
+android/app/*.keystore
+android/app/*.jks
+android/key.properties
+
+# Generated files that might contain secrets
+**/GeneratedPluginRegistrant.*
+**/Generated.xcconfig
+**/Flutter-Generated.xcconfig
+
+# Logs and temporary files
+*.log
+*.tmp
+*.temp
+
+# IDE specific files
+.vscode/settings.json
+.vscode/launch.json
+.vscode/tasks.json

@@ -7,6 +7,7 @@ import 'dart:io';
 import 'package:imako_app/presentation/controllers/realisation_controller.dart';
 import 'package:timeago/timeago.dart' as timeago;
 import 'package:imako_app/presentation/pages/fullscreen_media_viewer.dart';
+import 'package:imako_app/presentation/pages/details_profile_professionnel.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 import 'package:flutter/foundation.dart';
@@ -196,81 +197,100 @@ class _RealisationsPageState extends State<RealisationsPage> {
                               child: Row(
                                 crossAxisAlignment: CrossAxisAlignment.center,
                                 children: [
-                                  CircleAvatar(
-                                    radius: 22,
-                                    backgroundColor: const Color(0xFFF1F5F9),
-                                    backgroundImage: (realisation
-                                                    .professionalProfileImageUrl !=
-                                                null &&
-                                            realisation
-                                                .professionalProfileImageUrl!
-                                                .isNotEmpty)
-                                        ? NetworkImage(realisation
-                                            .professionalProfileImageUrl!)
-                                        : null,
-                                    child: (realisation
-                                                    .professionalProfileImageUrl ==
-                                                null ||
-                                            realisation
-                                                .professionalProfileImageUrl!
-                                                .isEmpty)
-                                        ? Text(
-                                            realisation
-                                                    .professionalName.isNotEmpty
-                                                ? realisation
-                                                    .professionalName[0]
-                                                : 'P',
-                                            style: const TextStyle(
-                                              fontWeight: FontWeight.bold,
-                                              color: Color(0xFF64748B),
-                                              fontSize: 20,
-                                            ),
-                                          )
-                                        : null,
+                                  GestureDetector(
+                                    onTap: () {
+                                      // Navigation vers la page de détails du professionnel
+                                      Get.to(() => DetailsProfileProfessionnel(
+                                            professionalId:
+                                                realisation.professionalId,
+                                          ));
+                                    },
+                                    child: CircleAvatar(
+                                      radius: 22,
+                                      backgroundColor: const Color(0xFFF1F5F9),
+                                      backgroundImage: (realisation
+                                                      .professionalProfileImageUrl !=
+                                                  null &&
+                                              realisation
+                                                  .professionalProfileImageUrl!
+                                                  .isNotEmpty)
+                                          ? NetworkImage(realisation
+                                              .professionalProfileImageUrl!)
+                                          : null,
+                                      child: (realisation
+                                                      .professionalProfileImageUrl ==
+                                                  null ||
+                                              realisation
+                                                  .professionalProfileImageUrl!
+                                                  .isEmpty)
+                                          ? Text(
+                                              realisation.professionalName
+                                                      .isNotEmpty
+                                                  ? realisation
+                                                      .professionalName[0]
+                                                  : 'P',
+                                              style: const TextStyle(
+                                                fontWeight: FontWeight.bold,
+                                                color: Color(0xFF64748B),
+                                                fontSize: 20,
+                                              ),
+                                            )
+                                          : null,
+                                    ),
                                   ),
                                   const SizedBox(width: 12),
                                   Expanded(
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Row(
-                                          children: [
-                                            Text(
-                                              realisation.professionalName,
-                                              style: const TextStyle(
-                                                fontWeight: FontWeight.bold,
-                                                fontSize: 15,
-                                                color: Color(0xFF0F172A),
+                                    child: GestureDetector(
+                                      onTap: () {
+                                        // Navigation vers la page de détails du professionnel
+                                        Get.to(
+                                            () => DetailsProfileProfessionnel(
+                                                  professionalId: realisation
+                                                      .professionalId,
+                                                ));
+                                      },
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Row(
+                                            children: [
+                                              Text(
+                                                realisation.professionalName,
+                                                style: const TextStyle(
+                                                  fontWeight: FontWeight.bold,
+                                                  fontSize: 15,
+                                                  color: Color(0xFF0F172A),
+                                                ),
                                               ),
-                                            ),
-                                            const SizedBox(width: 6),
-                                            Text(
-                                              '· ${realisation.title}',
-                                              style: const TextStyle(
-                                                color: Color(0xFF64748B),
-                                                fontSize: 13,
+                                              const SizedBox(width: 6),
+                                              Text(
+                                                '· ${realisation.title}',
+                                                style: const TextStyle(
+                                                  color: Color(0xFF64748B),
+                                                  fontSize: 13,
+                                                ),
                                               ),
-                                            ),
-                                          ],
-                                        ),
-                                        const SizedBox(height: 2),
-                                        Row(
-                                          children: [
-                                            Text(
-                                              timeAgoString,
-                                              style: const TextStyle(
-                                                color: Color(0xFF94A3B8),
-                                                fontSize: 12,
+                                            ],
+                                          ),
+                                          const SizedBox(height: 2),
+                                          Row(
+                                            children: [
+                                              Text(
+                                                timeAgoString,
+                                                style: const TextStyle(
+                                                  color: Color(0xFF94A3B8),
+                                                  fontSize: 12,
+                                                ),
                                               ),
-                                            ),
-                                            const SizedBox(width: 4),
-                                            const Icon(Icons.public,
-                                                size: 13,
-                                                color: Color(0xFFB0B8C1)),
-                                          ],
-                                        ),
-                                      ],
+                                              const SizedBox(width: 4),
+                                              const Icon(Icons.public,
+                                                  size: 13,
+                                                  color: Color(0xFFB0B8C1)),
+                                            ],
+                                          ),
+                                        ],
+                                      ),
                                     ),
                                   ),
                                   IconButton(

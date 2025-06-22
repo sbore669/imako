@@ -1,0 +1,14 @@
+class EnvConfig {
+  // MinIO Configuration
+  static const String minioEndpoint = 'YOUR_MINIO_ENDPOINT';
+  static const String minioPort = 'YOUR_MINIO_PORT';
+  static const String minioAccessKey = 'YOUR_MINIO_ACCESS_KEY';
+  static const String minioSecretKey = 'YOUR_MINIO_SECRET_KEY';
+  static const String minioBucketName = 'YOUR_MINIO_BUCKET_NAME';
+  static const bool minioUseSsl = false;
+  static const String minioPublicUrl = 'YOUR_MINIO_PUBLIC_URL';
+  
+  // Add other environment variables here
+  // static const String apiBaseUrl = 'YOUR_API_BASE_URL';
+  // static const String apiKey = 'YOUR_API_KEY';
+} 
