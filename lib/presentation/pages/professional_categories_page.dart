@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import '../../data/models/user_model.dart';
 import '../../domain/entities/user.dart' as domain;
 import '../controllers/professional_categories_controller.dart';
+import 'details_profile_professionnel.dart';
 
 class ProfessionalCategoriesPage extends StatefulWidget {
   final String categoryId;
@@ -28,10 +29,6 @@ class _ProfessionalCategoriesPageState
     super.initState();
     controller = Get.put(ProfessionalCategoriesController());
     controller.loadProfessionalsForCategory(widget.categoryName);
-  }
-
-  String getRandomAvatarUrl(int seed) {
-    return 'https://i.pravatar.cc/150?img=${(seed % 70) + 1}';
   }
 
   @override
@@ -67,12 +64,29 @@ class _ProfessionalCategoriesPageState
               const Divider(height: 1, color: Color(0xFFE2E8F0)),
           itemBuilder: (context, index) {
             final pro = controller.professionals[index];
-            final seed = pro.id.hashCode;
             return ListTile(
               leading: CircleAvatar(
                 radius: 24,
                 backgroundColor: const Color(0xFFF1F5F9),
-                backgroundImage: NetworkImage(getRandomAvatarUrl(seed)),
+                backgroundImage: (pro.profileImageUrl != null &&
+                        pro.profileImageUrl!.isNotEmpty)
+                    ? NetworkImage(pro.profileImageUrl!)
+                    : null,
+                child: (pro.profileImageUrl == null ||
+                        pro.profileImageUrl!.isEmpty)
+                    ? Text(
+                        (pro.companyName?.isNotEmpty == true)
+                            ? pro.companyName![0].toUpperCase()
+                            : (pro.firstName?.isNotEmpty == true)
+                                ? pro.firstName![0].toUpperCase()
+                                : 'P',
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF64748B),
+                          fontSize: 18,
+                        ),
+                      )
+                    : null,
               ),
               title: Text(
                 pro.companyName ?? (pro.firstName ?? ''),
@@ -123,7 +137,11 @@ class _ProfessionalCategoriesPageState
               ),
               contentPadding:
                   const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-              onTap: () {},
+              onTap: () {
+                Get.to(() => DetailsProfileProfessionnel(
+                      professionalId: pro.id,
+                    ));
+              },
               shape: const RoundedRectangleBorder(
                   borderRadius: BorderRadius.all(Radius.circular(12))),
               tileColor: Colors.white,

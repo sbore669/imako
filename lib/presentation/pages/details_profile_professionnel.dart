@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import '../../data/models/user_model.dart';
+import '../controllers/details_profile_controller.dart';
 import '../../data/models/realisation_model.dart';
-import 'fullscreen_media_viewer.dart';
 
-class DetailsProfileProfessionnel extends StatefulWidget {
+class DetailsProfileProfessionnel extends GetView<DetailsProfileController> {
   final String professionalId;
 
   const DetailsProfileProfessionnel({
@@ -14,74 +12,20 @@ class DetailsProfileProfessionnel extends StatefulWidget {
   });
 
   @override
-  State<DetailsProfileProfessionnel> createState() =>
-      _DetailsProfileProfessionnelState();
-}
-
-class _DetailsProfileProfessionnelState
-    extends State<DetailsProfileProfessionnel> {
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  UserModel? professional;
-  List<RealisationModel> realisations = [];
-  bool isLoading = true;
-  bool isLoadingRealisations = true;
-
-  @override
-  void initState() {
-    super.initState();
-    _loadProfessionalData();
-    _loadRealisations();
-  }
-
-  Future<void> _loadProfessionalData() async {
-    try {
-      final doc =
-          await _firestore.collection('users').doc(widget.professionalId).get();
-      if (doc.exists) {
-        setState(() {
-          professional = UserModel.fromFirestore(doc);
-        });
-      }
-    } catch (e) {
-      print('Erreur lors du chargement des données du professionnel: $e');
-    }
-  }
-
-  Future<void> _loadRealisations() async {
-    try {
-      setState(() {
-        isLoadingRealisations = true;
-      });
-
-      final querySnapshot = await _firestore
-          .collection('realisations')
-          .where('professionalId', isEqualTo: widget.professionalId)
-          .orderBy('createdAt', descending: true)
-          .limit(10)
-          .get();
-
-      setState(() {
-        realisations = querySnapshot.docs
-            .map((doc) => RealisationModel.fromFirestore(doc))
-            .toList();
-        isLoadingRealisations = false;
-        isLoading = false;
-      });
-    } catch (e) {
-      print('Erreur lors du chargement des réalisations: $e');
-      setState(() {
-        isLoadingRealisations = false;
-        isLoading = false;
-      });
-    }
-  }
-
-  @override
   Widget build(BuildContext context) {
+    // Injection du contrôleur avec l'ID du professionnel
+    Get.lazyPut<DetailsProfileController>(() => DetailsProfileController());
+
+    // Initialisation des données
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      controller.initializeData(professionalId);
+    });
+
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
       body: CustomScrollView(
         slivers: [
+          // Header moderne inspiré de home_page
           SliverAppBar(
             expandedHeight: 120,
             floating: false,
@@ -124,8 +68,7 @@ class _DetailsProfileProfessionnelState
                 ),
                 child: IconButton(
                   icon: const Icon(Icons.share, color: Color(0xFF64748B)),
-                  onPressed: () =>
-                      Get.snackbar('Partage', 'Fonctionnalité de partage'),
+                  onPressed: controller.shareProfile,
                 ),
               ),
             ],
@@ -137,89 +80,104 @@ class _DetailsProfileProfessionnelState
                 child: SafeArea(
                   child: Padding(
                     padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
-                    child: Row(
-                      children: [
-                        Container(
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            border: Border.all(
-                                color: const Color(0xFFE2E8F0), width: 2),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withOpacity(0.05),
-                                blurRadius: 8,
-                                offset: const Offset(0, 2),
+                    child: Obx(() => Row(
+                          children: [
+                            Container(
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                border: Border.all(
+                                    color: const Color(0xFFE2E8F0), width: 2),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withOpacity(0.05),
+                                    blurRadius: 8,
+                                    offset: const Offset(0, 2),
+                                  ),
+                                ],
                               ),
-                            ],
-                          ),
-                          child: CircleAvatar(
-                            radius: 30,
-                            backgroundColor: const Color(0xFFF1F5F9),
-                            backgroundImage: professional?.profileImageUrl !=
-                                    null
-                                ? NetworkImage(professional!.profileImageUrl!)
-                                : null,
-                            child: professional?.profileImageUrl == null
-                                ? Text(
-                                    professional?.companyName
-                                            ?.substring(0, 1)
-                                            .toUpperCase() ??
-                                        'P',
+                              child: CircleAvatar(
+                                radius: 30,
+                                backgroundColor: const Color(0xFFF1F5F9),
+                                backgroundImage: controller.currentProfessional
+                                            ?.profileImageUrl !=
+                                        null
+                                    ? NetworkImage(controller
+                                        .currentProfessional!.profileImageUrl!)
+                                    : null,
+                                child: controller.currentProfessional
+                                            ?.profileImageUrl ==
+                                        null
+                                    ? Text(
+                                        controller.currentProfessional
+                                                ?.companyName
+                                                ?.substring(0, 1)
+                                                .toUpperCase() ??
+                                            'P',
+                                        style: const TextStyle(
+                                          fontSize: 24,
+                                          fontWeight: FontWeight.bold,
+                                          color: Color(0xFF64748B),
+                                        ),
+                                      )
+                                    : null,
+                              ),
+                            ),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Text(
+                                    controller.currentProfessional?.activity ??
+                                        'Professionnel',
                                     style: const TextStyle(
-                                      fontSize: 24,
-                                      fontWeight: FontWeight.bold,
+                                      fontSize: 14,
                                       color: Color(0xFF64748B),
+                                      fontWeight: FontWeight.w500,
                                     ),
-                                  )
-                                : null,
-                          ),
-                        ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Text(
-                                professional?.activity ?? 'Professionnel',
-                                style: const TextStyle(
-                                  fontSize: 14,
-                                  color: Color(0xFF64748B),
-                                  fontWeight: FontWeight.w500,
-                                ),
+                                  ),
+                                  Text(
+                                    controller
+                                            .currentProfessional?.companyName ??
+                                        'Chargement...',
+                                    style: const TextStyle(
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.bold,
+                                      color: Color(0xFF0F172A),
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ],
                               ),
-                              Text(
-                                professional?.companyName ?? 'Chargement...',
-                                style: const TextStyle(
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.bold,
-                                  color: Color(0xFF0F172A),
-                                ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
+                            ),
+                          ],
+                        )),
                   ),
                 ),
               ),
             ),
           ),
+
+          // Contenu principal
           SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsets.all(20),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  // Section Informations du professionnel
                   _buildProfessionalInfo(),
                   const SizedBox(height: 24),
+
+                  // Section Statistiques
                   _buildStatsSection(),
                   const SizedBox(height: 24),
+
+                  // Section Réalisations
                   _buildRealisationsSection(),
-                  const SizedBox(height: 100),
+                  const SizedBox(height: 100), // Espace pour le bouton flottant
                 ],
               ),
             ),
@@ -232,54 +190,84 @@ class _DetailsProfileProfessionnelState
   }
 
   Widget _buildProfessionalInfo() {
-    if (professional == null) {
-      return const Center(child: CircularProgressIndicator());
-    }
+    return Obx(() {
+      if (controller.isDataLoading) {
+        return const Center(child: CircularProgressIndicator());
+      }
 
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.03),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Informations',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: Color(0xFF0F172A),
+      if (controller.currentProfessional == null) {
+        return Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: const Color(0xFFE2E8F0)),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.03),
+                blurRadius: 8,
+                offset: const Offset(0, 2),
               ),
+            ],
+          ),
+          child: const Padding(
+            padding: EdgeInsets.all(20),
+            child: Center(child: Text("Aucune information disponible.")),
+          ),
+        );
+      }
+
+      return Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: const Color(0xFFE2E8F0)),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.03),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
             ),
-            const SizedBox(height: 16),
-            if (professional!.activity != null &&
-                professional!.activity!.isNotEmpty)
-              _buildInfoRow(Icons.work, 'Activité', professional!.activity!),
-            if (professional!.address != null &&
-                professional!.address!.isNotEmpty)
-              _buildInfoRow(
-                  Icons.location_on, 'Adresse', professional!.address!),
-            if (professional!.phone != null && professional!.phone!.isNotEmpty)
-              _buildInfoRow(Icons.phone, 'Téléphone', professional!.phone!),
-            if (professional!.email != null && professional!.email!.isNotEmpty)
-              _buildInfoRow(Icons.email, 'Email', professional!.email!),
-            if (professional!.siret != null && professional!.siret!.isNotEmpty)
-              _buildInfoRow(Icons.badge, 'SIRET', professional!.siret!),
           ],
         ),
-      ),
-    );
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Informations',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF0F172A),
+                ),
+              ),
+              const SizedBox(height: 16),
+              if (controller.currentProfessional!.activity != null &&
+                  controller.currentProfessional!.activity!.isNotEmpty)
+                _buildInfoRow(Icons.work, 'Activité',
+                    controller.currentProfessional!.activity!),
+              if (controller.currentProfessional!.address != null &&
+                  controller.currentProfessional!.address!.isNotEmpty)
+                _buildInfoRow(Icons.location_on, 'Adresse',
+                    controller.currentProfessional!.address!),
+              if (controller.currentProfessional!.phone != null &&
+                  controller.currentProfessional!.phone!.isNotEmpty)
+                _buildInfoRow(Icons.phone, 'Téléphone',
+                    controller.currentProfessional!.phone!),
+              if (controller.currentProfessional!.email != null &&
+                  controller.currentProfessional!.email!.isNotEmpty)
+                _buildInfoRow(Icons.email, 'Email',
+                    controller.currentProfessional!.email!),
+              if (controller.currentProfessional!.siret != null &&
+                  controller.currentProfessional!.siret!.isNotEmpty)
+                _buildInfoRow(Icons.badge, 'SIRET',
+                    controller.currentProfessional!.siret!),
+            ],
+          ),
+        ),
+      );
+    });
   }
 
   Widget _buildInfoRow(IconData icon, String label, String value) {
@@ -326,35 +314,39 @@ class _DetailsProfileProfessionnelState
   }
 
   Widget _buildStatsSection() {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.03),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
+    return Obx(() => Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: const Color(0xFFE2E8F0)),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.03),
+                blurRadius: 8,
+                offset: const Offset(0, 2),
+              ),
+            ],
           ),
-        ],
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: [
-            _buildStatItem('4.8', 'Avis', Icons.star, const Color(0xFFFFB800)),
-            _buildStatItem('${realisations.length}', 'Réalisations',
-                Icons.photo_library, const Color(0xFF3B82F6)),
-            _buildStatItem(
-                '150+', 'Clients', Icons.people, const Color(0xFF10B981)),
-            _buildStatItem(
-                '2 ans', 'Expérience', Icons.timer, const Color(0xFF8B5CF6)),
-          ],
-        ),
-      ),
-    );
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                _buildStatItem(
+                    '4.8', 'Avis', Icons.star, const Color(0xFFFFB800)),
+                _buildStatItem(
+                    '${controller.currentRealisations.length}',
+                    'Réalisations',
+                    Icons.photo_library,
+                    const Color(0xFF3B82F6)),
+                _buildStatItem(
+                    '150+', 'Clients', Icons.people, const Color(0xFF10B981)),
+                _buildStatItem('2 ans', 'Expérience', Icons.timer,
+                    const Color(0xFF8B5CF6)),
+              ],
+            ),
+          ),
+        ));
   }
 
   Widget _buildStatItem(
@@ -392,92 +384,147 @@ class _DetailsProfileProfessionnelState
   }
 
   Widget _buildRealisationsSection() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    return Obx(() => Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'Réalisations',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: Color(0xFF0F172A),
-              ),
-            ),
-            Container(
-              decoration: BoxDecoration(
-                color: const Color(0xFFF1F5F9),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                child: Text(
-                  '${realisations.length}',
-                  style: const TextStyle(
-                    color: Color(0xFF475569),
-                    fontWeight: FontWeight.w600,
-                    fontSize: 12,
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  'Réalisations',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF0F172A),
                   ),
                 ),
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 16),
-        if (isLoadingRealisations)
-          const Center(child: CircularProgressIndicator())
-        else if (realisations.isEmpty)
-          Container(
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: const Color(0xFFE2E8F0)),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.02),
-                  blurRadius: 4,
-                  offset: const Offset(0, 1),
+                Container(
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF1F5F9),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Padding(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    child: Text(
+                      '${controller.currentRealisations.length}',
+                      style: const TextStyle(
+                        color: Color(0xFF475569),
+                        fontWeight: FontWeight.w600,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ),
                 ),
               ],
             ),
-            child: const Padding(
-              padding: EdgeInsets.all(40),
-              child: Center(
-                child: Column(
-                  children: [
-                    Icon(Icons.photo_library_outlined,
-                        size: 48, color: Color(0xFF94A3B8)),
-                    SizedBox(height: 16),
-                    Text(
-                      'Aucune réalisation pour le moment',
-                      style: TextStyle(color: Color(0xFF64748B), fontSize: 16),
+            const SizedBox(height: 16),
+            if (controller.isRealisationsLoading)
+              Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: const Color(0xFFE2E8F0)),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.02),
+                      blurRadius: 4,
+                      offset: const Offset(0, 1),
                     ),
                   ],
                 ),
+                child: const Padding(
+                  padding: EdgeInsets.all(40),
+                  child: Center(
+                    child: Column(
+                      children: [
+                        CircularProgressIndicator(),
+                        SizedBox(height: 16),
+                        Text(
+                          'Chargement des réalisations...',
+                          style:
+                              TextStyle(color: Color(0xFF64748B), fontSize: 16),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              )
+            else if (controller.currentRealisations.isEmpty)
+              Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: const Color(0xFFE2E8F0)),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.02),
+                      blurRadius: 4,
+                      offset: const Offset(0, 1),
+                    ),
+                  ],
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(40),
+                  child: Center(
+                    child: Column(
+                      children: [
+                        Container(
+                          width: 80,
+                          height: 80,
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFF8FAFC),
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: const Icon(
+                            Icons.photo_library_outlined,
+                            size: 40,
+                            color: Color(0xFF94A3B8),
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        const Text(
+                          'Aucune réalisation',
+                          style: TextStyle(
+                            color: Color(0xFF0F172A),
+                            fontSize: 18,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        const Text(
+                          'Ce professionnel n\'a pas encore partagé ses réalisations',
+                          style: TextStyle(
+                            color: Color(0xFF64748B),
+                            fontSize: 14,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              )
+            else
+              GridView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 2,
+                  crossAxisSpacing: 12,
+                  mainAxisSpacing: 12,
+                  childAspectRatio: 0.75,
+                ),
+                itemCount: controller.currentRealisations.length > 6
+                    ? 6
+                    : controller.currentRealisations.length,
+                itemBuilder: (context, index) {
+                  final realisation = controller.currentRealisations[index];
+                  return _buildRealisationCard(realisation);
+                },
               ),
-            ),
-          )
-        else
-          GridView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 2,
-              crossAxisSpacing: 12,
-              mainAxisSpacing: 12,
-              childAspectRatio: 1,
-            ),
-            itemCount: realisations.length > 6 ? 6 : realisations.length,
-            itemBuilder: (context, index) {
-              final realisation = realisations[index];
-              return _buildRealisationCard(realisation);
-            },
-          ),
-      ],
-    );
+          ],
+        ));
   }
 
   Widget _buildRealisationCard(RealisationModel realisation) {
@@ -488,9 +535,9 @@ class _DetailsProfileProfessionnelState
         border: Border.all(color: const Color(0xFFE2E8F0)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.02),
-            blurRadius: 4,
-            offset: const Offset(0, 1),
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
           ),
         ],
       ),
@@ -500,16 +547,14 @@ class _DetailsProfileProfessionnelState
           borderRadius: BorderRadius.circular(16),
           onTap: () {
             if (realisation.mediaUrls.isNotEmpty) {
-              Get.to(() => FullscreenMediaViewer(
-                    mediaUrls: realisation.mediaUrls,
-                    initialIndex: 0,
-                  ));
+              controller.openRealisation(realisation.mediaUrls, 0);
             }
           },
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Expanded(
+                flex: 4,
                 child: Container(
                   width: double.infinity,
                   decoration: BoxDecoration(
@@ -525,42 +570,174 @@ class _DetailsProfileProfessionnelState
                   child: realisation.mediaUrls.isEmpty
                       ? Container(
                           decoration: BoxDecoration(
-                            color: const Color(0xFFF1F5F9),
+                            color: const Color(0xFFF8FAFC),
                             borderRadius: const BorderRadius.vertical(
                                 top: Radius.circular(16)),
                           ),
-                          child: const Icon(Icons.image,
-                              size: 48, color: Color(0xFF94A3B8)),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Container(
+                                width: 40,
+                                height: 40,
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFE2E8F0),
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                child: const Icon(
+                                  Icons.image,
+                                  size: 20,
+                                  color: Color(0xFF94A3B8),
+                                ),
+                              ),
+                              const SizedBox(height: 6),
+                              const Text(
+                                'Aucune image',
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  color: Color(0xFF94A3B8),
+                                ),
+                              ),
+                            ],
+                          ),
                         )
-                      : null,
+                      : Stack(
+                          children: [
+                            // Indicateur de nombre d'images
+                            if (realisation.mediaUrls.length > 1)
+                              Positioned(
+                                top: 6,
+                                right: 6,
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 6,
+                                    vertical: 3,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: Colors.black.withOpacity(0.7),
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      const Icon(
+                                        Icons.photo_library,
+                                        size: 12,
+                                        color: Colors.white,
+                                      ),
+                                      const SizedBox(width: 3),
+                                      Text(
+                                        '${realisation.mediaUrls.length}',
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 10,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                          ],
+                        ),
                 ),
               ),
-              Padding(
-                padding: const EdgeInsets.all(12),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      realisation.title,
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 14,
-                        color: Color(0xFF0F172A),
+              Expanded(
+                flex: 3,
+                child: Padding(
+                  padding: const EdgeInsets.all(10),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        realisation.title,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 13,
+                          color: Color(0xFF0F172A),
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      realisation.description,
-                      style: const TextStyle(
-                        fontSize: 12,
-                        color: Color(0xFF64748B),
+                      const SizedBox(height: 3),
+                      Expanded(
+                        child: Text(
+                          realisation.description,
+                          style: const TextStyle(
+                            fontSize: 11,
+                            color: Color(0xFF64748B),
+                            height: 1.2,
+                          ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
                       ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ],
+                      const SizedBox(height: 6),
+                      Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 6,
+                              vertical: 3,
+                            ),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFF1F5F9),
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const Icon(
+                                  Icons.favorite,
+                                  size: 10,
+                                  color: Color(0xFFEF4444),
+                                ),
+                                const SizedBox(width: 3),
+                                Text(
+                                  '${realisation.likes}',
+                                  style: const TextStyle(
+                                    fontSize: 10,
+                                    color: Color(0xFF64748B),
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(width: 6),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 6,
+                              vertical: 3,
+                            ),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFF1F5F9),
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const Icon(
+                                  Icons.chat_bubble_outline,
+                                  size: 10,
+                                  color: Color(0xFF3B82F6),
+                                ),
+                                const SizedBox(width: 3),
+                                Text(
+                                  '${realisation.comments}',
+                                  style: const TextStyle(
+                                    fontSize: 10,
+                                    color: Color(0xFF64748B),
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ],
@@ -575,15 +752,7 @@ class _DetailsProfileProfessionnelState
       margin: const EdgeInsets.symmetric(horizontal: 20),
       width: double.infinity,
       child: ElevatedButton.icon(
-        onPressed: () {
-          Get.snackbar(
-            'Contact',
-            'Ouverture du chat avec ${professional?.companyName ?? 'le professionnel'}',
-            snackPosition: SnackPosition.BOTTOM,
-            backgroundColor: const Color(0xFF10B981),
-            colorText: Colors.white,
-          );
-        },
+        onPressed: controller.contactProfessional,
         icon: const Icon(Icons.chat, size: 20),
         label: const Text(
           'Contacter',

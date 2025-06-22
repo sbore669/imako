@@ -1,252 +1,327 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '../controllers/auth_controller.dart';
-import '../../data/models/user_model.dart';
+import '../controllers/particulier_profile_controller.dart';
 
-class ProfileParticulierPage extends StatefulWidget {
+class ProfileParticulierPage extends GetView<ParticulierProfileController> {
   const ProfileParticulierPage({super.key});
 
   @override
-  State<ProfileParticulierPage> createState() => _ProfileParticulierPageState();
-}
-
-class _ProfileParticulierPageState extends State<ProfileParticulierPage> {
-  late TextEditingController _firstNameController;
-  late TextEditingController _lastNameController;
-  late TextEditingController _emailController;
-  late TextEditingController _phoneController;
-
-  @override
-  void initState() {
-    super.initState();
-    final currentUser = Get.find<AuthController>().currentUser as UserModel?;
-    _firstNameController =
-        TextEditingController(text: currentUser?.firstName ?? '');
-    _lastNameController =
-        TextEditingController(text: currentUser?.lastName ?? '');
-    _emailController = TextEditingController(text: currentUser?.email ?? '');
-    _phoneController = TextEditingController(text: currentUser?.phone ?? '');
-  }
-
-  @override
-  void dispose() {
-    _firstNameController.dispose();
-    _lastNameController.dispose();
-    _emailController.dispose();
-    _phoneController.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
-    final currentUser = Get.find<AuthController>().currentUser as UserModel?;
-    final initial = (currentUser?.firstName?.isNotEmpty == true)
-        ? currentUser!.firstName![0].toUpperCase()
-        : 'U';
+    // Injection du contrôleur
+    Get.put(ParticulierProfileController());
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Mon profil', style: TextStyle(color: Colors.black)),
-        backgroundColor: Colors.white,
-        elevation: 0.5,
-        iconTheme: const IconThemeData(color: Colors.black),
-      ),
-      backgroundColor: Colors.white,
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Center(
-              child: CircleAvatar(
-                radius: 44,
-                backgroundColor: const Color(0xFFF1F5F9),
-                backgroundImage: currentUser?.profileImageUrl != null &&
-                        currentUser!.profileImageUrl!.isNotEmpty
-                    ? NetworkImage(currentUser!.profileImageUrl!)
-                    : null,
-                child: (currentUser?.profileImageUrl == null ||
-                        currentUser!.profileImageUrl!.isEmpty)
-                    ? Text(
-                        initial,
-                        style: const TextStyle(
-                          fontSize: 38,
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xFF4F8FFF),
-                        ),
-                      )
-                    : null,
+      backgroundColor: const Color(0xFFF8FAFC),
+      body: CustomScrollView(
+        slivers: [
+          // Header moderne avec photo de profil
+          SliverAppBar(
+            expandedHeight: 180,
+            floating: false,
+            pinned: true,
+            backgroundColor: const Color(0xFFF8FAFC),
+            surfaceTintColor: const Color(0xFFF8FAFC),
+            elevation: 0,
+            shadowColor: Colors.transparent,
+            leading: Container(
+              margin: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.05),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: IconButton(
+                icon: const Icon(Icons.arrow_back, color: Color(0xFF64748B)),
+                onPressed: controller.goBack,
               ),
             ),
-            const SizedBox(height: 24),
-            _buildEditableField(context,
-                label: 'Prénom',
-                value: _firstNameController.text,
-                onChanged: (val) =>
-                    setState(() => _firstNameController.text = val)),
-            const SizedBox(height: 16),
-            _buildEditableField(context,
-                label: 'Nom',
-                value: _lastNameController.text,
-                onChanged: (val) =>
-                    setState(() => _lastNameController.text = val)),
-            const SizedBox(height: 16),
-            _buildDisplayField(label: 'Email', value: _emailController.text),
-            const SizedBox(height: 16),
-            _buildEditableField(context,
-                label: 'Téléphone',
-                value: _phoneController.text,
-                onChanged: (val) =>
-                    setState(() => _phoneController.text = val)),
-            const SizedBox(height: 32),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: () {
-                  // TODO: Ajouter la logique de modification
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                        content:
-                            Text('Modification enregistrée (à implémenter)')),
-                  );
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF4F8FFF),
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  elevation: 1,
-                  textStyle: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
+            flexibleSpace: FlexibleSpaceBar(
+              background: Container(
+                decoration: const BoxDecoration(
+                  color: Color(0xFFF8FAFC),
+                ),
+                child: SafeArea(
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 10, 20, 0),
+                    child: Obx(() => Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            // Photo de profil
+                            Container(
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                border: Border.all(
+                                  color: const Color(0xFFE2E8F0),
+                                  width: 3,
+                                ),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withOpacity(0.1),
+                                    blurRadius: 15,
+                                    offset: const Offset(0, 6),
+                                  ),
+                                ],
+                              ),
+                              child: CircleAvatar(
+                                radius: 40,
+                                backgroundColor: const Color(0xFFF1F5F9),
+                                backgroundImage: controller.hasProfileImage()
+                                    ? NetworkImage(
+                                        controller.getProfileImageUrl()!)
+                                    : null,
+                                child: !controller.hasProfileImage()
+                                    ? Text(
+                                        controller.getInitial(),
+                                        style: const TextStyle(
+                                          fontSize: 28,
+                                          fontWeight: FontWeight.bold,
+                                          color: Color(0xFF4F8FFF),
+                                        ),
+                                      )
+                                    : null,
+                              ),
+                            ),
+                            const SizedBox(height: 12),
+                            // Nom complet
+                            Text(
+                              controller.getFullName(),
+                              style: const TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                                color: Color(0xFF0F172A),
+                              ),
+                              textAlign: TextAlign.center,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            const SizedBox(height: 6),
+                            // Type d'utilisateur
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 12, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF4F8FFF),
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                              child: const Text(
+                                'Particulier',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w500,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ),
+                          ],
+                        )),
                   ),
                 ),
-                child: const Text('Modifier'),
               ),
             ),
-            const SizedBox(height: 16),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton.icon(
-                onPressed: () {
-                  Get.find<AuthController>().signOut();
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.redAccent,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  elevation: 1,
-                  textStyle: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                icon: const Icon(Icons.logout, size: 22),
-                label: const Text('Se déconnecter'),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildEditableField(BuildContext context,
-      {required String label,
-      required String value,
-      required ValueChanged<String> onChanged}) {
-    return InkWell(
-      borderRadius: BorderRadius.circular(12),
-      onTap: () async {
-        final controller = TextEditingController(text: value);
-        final result = await showDialog<String>(
-          context: context,
-          builder: (ctx) => AlertDialog(
-            title: Text('Modifier $label'),
-            content: TextField(
-              controller: controller,
-              autofocus: true,
-              decoration: InputDecoration(
-                labelText: label,
-                border: const OutlineInputBorder(),
-              ),
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.of(ctx).pop(),
-                child: const Text('Annuler'),
-              ),
-              ElevatedButton(
-                onPressed: () => Navigator.of(ctx).pop(controller.text),
-                child: const Text('Enregistrer'),
-              ),
-            ],
           ),
-        );
-        if (result != null && result != value) {
-          onChanged(result);
-        }
-      },
-      child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
-        decoration: BoxDecoration(
-          color: const Color(0xFFF8FAFC),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: const Color(0xFFE2E8F0)),
-        ),
-        child: Row(
-          children: [
-            Expanded(
+
+          // Contenu principal
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.all(20),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(label,
-                      style: const TextStyle(
-                          fontSize: 13, color: Color(0xFF64748B))),
-                  const SizedBox(height: 2),
-                  Text(value.isEmpty ? 'Non renseigné' : value,
-                      style: const TextStyle(
-                          fontSize: 16,
-                          color: Color(0xFF0F172A),
-                          fontWeight: FontWeight.w500)),
+                  // Section Informations
+                  _buildSectionTitle('Informations personnelles'),
+                  const SizedBox(height: 16),
+                  _buildInfoCard(),
+                  const SizedBox(height: 24),
+
+                  // Section Actions
+                  _buildSectionTitle('Actions'),
+                  const SizedBox(height: 16),
+                  _buildActionsCard(),
+                  const SizedBox(height: 100), // Espace pour le bouton flottant
                 ],
               ),
             ),
-            const Icon(Icons.edit, size: 18, color: Color(0xFFB0B8C1)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSectionTitle(String title) {
+    return Text(
+      title,
+      style: const TextStyle(
+        fontSize: 20,
+        fontWeight: FontWeight.bold,
+        color: Color(0xFF0F172A),
+      ),
+    );
+  }
+
+  Widget _buildInfoCard() {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.03),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          children: [
+            _buildDisplayField('Prénom', controller.firstNameController.text),
+            const SizedBox(height: 16),
+            _buildDisplayField('Nom', controller.lastNameController.text),
+            const SizedBox(height: 16),
+            _buildDisplayField('Email', controller.emailController.text),
+            const SizedBox(height: 16),
+            _buildDisplayField('Téléphone', controller.phoneController.text),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildDisplayField({required String label, required String value}) {
+  Widget _buildDisplayField(String label, String value) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
       decoration: BoxDecoration(
-        color: const Color(0xFFF1F5F9),
+        color: const Color(0xFFF8FAFC),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: const Color(0xFFE2E8F0)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(label,
-              style: const TextStyle(fontSize: 13, color: Color(0xFF64748B))),
+          Text(
+            label,
+            style: const TextStyle(
+              fontSize: 13,
+              color: Color(0xFF64748B),
+            ),
+          ),
           const SizedBox(height: 2),
-          Text(value.isEmpty ? 'Non renseigné' : value,
-              style: const TextStyle(
-                  fontSize: 16,
-                  color: Color(0xFF0F172A),
-                  fontWeight: FontWeight.w500)),
+          Text(
+            value.isEmpty ? 'Non renseigné' : value,
+            style: const TextStyle(
+              fontSize: 16,
+              color: Color(0xFF0F172A),
+              fontWeight: FontWeight.w500,
+            ),
+          ),
         ],
       ),
+    );
+  }
+
+  Widget _buildActionsCard() {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.03),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          _buildActionTile(
+            Icons.settings,
+            'Paramètres',
+            'Configurer votre compte',
+            const Color(0xFF64748B),
+            () {
+              Get.snackbar(
+                'Paramètres',
+                'Fonctionnalité en cours de développement',
+                snackPosition: SnackPosition.BOTTOM,
+                backgroundColor: const Color(0xFF64748B),
+                colorText: Colors.white,
+              );
+            },
+          ),
+          const Divider(height: 1, color: Color(0xFFE2E8F0)),
+          _buildActionTile(
+            Icons.help_outline,
+            'Aide & Support',
+            'Besoin d\'assistance ?',
+            const Color(0xFF10B981),
+            () {
+              Get.snackbar(
+                'Support',
+                'Fonctionnalité en cours de développement',
+                snackPosition: SnackPosition.BOTTOM,
+                backgroundColor: const Color(0xFF10B981),
+                colorText: Colors.white,
+              );
+            },
+          ),
+          const Divider(height: 1, color: Color(0xFFE2E8F0)),
+          _buildActionTile(
+            Icons.logout,
+            'Se déconnecter',
+            'Fermer votre session',
+            const Color(0xFFEF4444),
+            controller.signOut,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildActionTile(IconData icon, String title, String subtitle,
+      Color color, VoidCallback onTap) {
+    return ListTile(
+      leading: Container(
+        width: 40,
+        height: 40,
+        decoration: BoxDecoration(
+          color: color.withOpacity(0.1),
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: Icon(icon, color: color, size: 20),
+      ),
+      title: Text(
+        title,
+        style: const TextStyle(
+          fontSize: 16,
+          fontWeight: FontWeight.w600,
+          color: Color(0xFF0F172A),
+        ),
+      ),
+      subtitle: Text(
+        subtitle,
+        style: const TextStyle(
+          fontSize: 13,
+          color: Color(0xFF64748B),
+        ),
+      ),
+      trailing: const Icon(
+        Icons.arrow_forward_ios,
+        color: Color(0xFF94A3B8),
+        size: 16,
+      ),
+      onTap: onTap,
+      contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
     );
   }
 }
