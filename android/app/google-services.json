@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1010775404756",
+    "project_id": "imako-aaaf9",
+    "storage_bucket": "imako-aaaf9.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1010775404756:android:4c386cb27f38ba16384b41",
+        "android_client_info": {
+          "package_name": "com.example.imako_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDCNTaVwyDeVCuhuThXYsdrEyOsBPjTQiw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
